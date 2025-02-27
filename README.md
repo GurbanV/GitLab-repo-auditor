@@ -11,6 +11,18 @@ An audit tool for GitLab projects to check compliance with internal standards an
 - Inspects CI/CD configurations for security tools (such as semgrep, trivy etc).
 - Verifies fixed dependencies.
 - Reports on repository health and large files.
+- **Additional Checks:**
+  - MR Pipeline Requirement (ensuring pipelines succeed before merging).
+  - CI/CD Variables Protection and Masking.
+  - Separate caches for protected branches (via .gitlab-ci.yml settings).
+  - Job Timeout configuration.
+  - Approvals Before Merge setting.
+  - CODEOWNERS file presence.
+  - Self-Approval Restriction and User Reauthentication enforcement.
+  - Signed Commits enforcement via push rules.
+  - Push Rules configuration.
+  - Project Owners Count limits.
+  - Use of protected runners and detection of group/shared runners.
 
 ## Installation
 
