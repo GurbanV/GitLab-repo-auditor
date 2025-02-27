@@ -29,22 +29,10 @@ warnings.filterwarnings("ignore")
 
 
 console = Console()
-private_token = args.token or os.getenv('GITLAB_PRIVATE_TOKEN')
-gitlab_url = args.url or os.getenv('GITLAB_URL')
 
-if not private_token or not gitlab_url:
-    console.print("[red]Please set the GITLAB_PRIVATE_TOKEN and GITLAB_URL environment variables.[/red]")
-    exit(1)
-
-try:
-    gl = gitlab.Gitlab(gitlab_url, private_token=private_token, ssl_verify=False)
-    gl.auth()
-except gitlab.exceptions.GitlabAuthenticationError:
-    console.print("[red]Authentication error. Please check your private token.[/red]")
-    exit(1)
-except gitlab.exceptions.GitlabConnectionError:
-    console.print("[red]Failed to connect to GitLab. Please check the URL.[/red]")
-    exit(1)
+gl = None
+private_token = None
+gitlab_url = None
 
 # Access levels
 MAINTAINER_ACCESS = 40
@@ -52,6 +40,7 @@ OWNER_ACCESS = 50
 
 # Load dependency_files from JSON file
 dependency_files = {}
+dependency_file_path = 'dependency_files.json'
 try:
     with open('dependency_files.json', 'r', encoding='utf-8') as f:
         dependency_files = json.load(f)
@@ -61,6 +50,29 @@ except FileNotFoundError:
 except json.JSONDecodeError as e:
     console.print(f"[red]Error reading 'dependency_files.json': {e}[/red]")
     exit(1)
+
+
+def initialize_gitlab(url: str, token: str) -> gitlab.Gitlab:
+    """
+    Initialize and authenticate GitLab client.
+    """
+    parsed_url = urlparse(url)
+    if not parsed_url.scheme:
+        url = "https://" + url
+    try:
+        gl_instance = gitlab.Gitlab(url, private_token=token, ssl_verify=False)
+        gl_instance.auth()
+        return gl_instance
+    except gitlab.exceptions.GitlabAuthenticationError:
+        console.print("[red]Authentication error. Please check your private token.[/red]")
+        sys.exit(1)
+    except gitlab.exceptions.GitlabConnectionError:
+        console.print("[red]Failed to connect to GitLab. Please check the URL.[/red]")
+        sys.exit(1)
+    except Exception as e:
+        console.print(f"[red]Unexpected error during GitLab initialization: {e}[/red]")
+        sys.exit(1)
+
 
 @lru_cache(maxsize=128)
 def get_all_members(manager):
@@ -575,6 +587,7 @@ def generate_report(project, results):
 
 
 def main():
+    global private_token, gitlab_url, gl
     parser = argparse.ArgumentParser(description='Audit GitLab projects for compliance with internal standards and best practices.')
     parser.add_argument('--exclude', nargs='+', help='Exclude specific checks (e.g., protected_branches, check_owners/maintainers, changelog_readme, merge_requests_reviews, ci_cd_checks, dependencies, project_private, branch_policies, large_files, repository_health)')
     parser.add_argument('--output', choices=['console', 'markdown'], default='console', help='Specify output format')
@@ -582,12 +595,12 @@ def main():
     parser.add_argument('--url', help='Specify GitLab URL')
     args = parser.parse_args()
 
-    if args.token:
-        global private_token
-        private_token = args.token
-    if args.url:
-        global gitlab_url
-        gitlab_url = args.url
+    private_token = args.token if args.token else os.getenv('GITLAB_PRIVATE_TOKEN')
+    gitlab_url = args.url if args.url else os.getenv('GITLAB_URL')
+    if not private_token or not gitlab_url:
+        console.print("[red]Please set the GITLAB_PRIVATE_TOKEN and GITLAB_URL environment variables.[/red]")
+        exit(1)
+    gl = initialize_gitlab(gitlab_url, private_token)
 
     exclude_checks = args.exclude if args.exclude else []
     project_ids = input("Enter one or more project IDs or URLs (comma-separated): ").split(',')
