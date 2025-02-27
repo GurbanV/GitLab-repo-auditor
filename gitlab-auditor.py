@@ -287,7 +287,7 @@ def check_project(project, exclude_checks):
     try:
         if 'protected_branches' not in exclude_checks:
             branches = get_branch_list(project.id)
-            protected_branches = project.protectedbranches.list()
+            protected_branches = project.protectedbranches.list(all=True)
             results["protected_branches"] = [
                 branch.name for branch in branches
                 if any(protected_branch.name == branch.name for protected_branch in protected_branches)
