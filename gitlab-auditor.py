@@ -12,20 +12,25 @@ from rich.table import Table
 import json
 import fnmatch
 from dateutil import parser
+from dotenv import load_dotenv
+
+
+load_dotenv()  
 
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s %(levelname)-8s %(message)s',
                     datefmt='%Y-%m-%d %H:%M:%S')
+logging.getLogger("urllib3.connectionpool").setLevel(logging.ERROR)
 
 
 warnings.filterwarnings("ignore")
 
 
 console = Console()
-private_token = os.getenv('GITLAB_PRIVATE_TOKEN')
-gitlab_url = os.getenv('GITLAB_URL')
+private_token = args.token or os.getenv('GITLAB_PRIVATE_TOKEN')
+gitlab_url = args.url or os.getenv('GITLAB_URL')
 
 if not private_token or not gitlab_url:
     console.print("[red]Please set the GITLAB_PRIVATE_TOKEN and GITLAB_URL environment variables.[/red]")
