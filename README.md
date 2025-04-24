@@ -1,4 +1,4 @@
-# GitLab Auditor
+# GitLab Repository Auditor
 
 An audit tool for GitLab projects to check compliance with internal standards and best practices.
 
@@ -29,8 +29,8 @@ An audit tool for GitLab projects to check compliance with internal standards an
 Clone the repository and install the requirements:
 
 ```bash
-git clone https://github.com/GurbanV/gitlab-auditor.git
-cd gitlab-auditor
+git clone https://github.com/GurbanV/gitlab-repo-auditor.git
+cd gitlab-repo-auditor
 pip install -r requirements.txt
 ```
 
@@ -45,13 +45,13 @@ export GITLAB_URL=your_gitlab_url
 ## Run
 
 ```bash
-python3 gitlab-auditor.py
+python3 gitlab-repo-auditor.py
 ```
 
 Also supports specifying arguments:
 
 ```bash
-python3 gitlab-auditor.py --output markdown --exclude large_files
+python3 gitlab-repo-auditor.py --output markdown --exclude large_files
 ```
 
 ## Requirements
